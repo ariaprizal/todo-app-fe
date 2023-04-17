@@ -90,7 +90,6 @@ const Login = () => {
         setLoginPage(!loginPage)
         toast.success('User created succesfully!')
       } catch (error) {
-        console.log(error);
         toast.error(JSON.stringify(error?.response?.data?.error), {
             toastId: "errorLogin",
             theme: "dark",
@@ -105,7 +104,6 @@ const Login = () => {
         email: formData.email,
         password: formData.password
       })
-      console.log(response);
       const date = new Date();
       date.setDate(date.getDate() + 7);
       window.localStorage.setItem('session', JSON.stringify({
