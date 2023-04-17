@@ -80,8 +80,24 @@ const Home = () => {
             const cardTodo = await axios.delete(`${url}/card-todo/${id}`, {
                 headers: { Authorization: `Bearer ${auth.jwt}` }
             })
-            toast.success('Successfully deleted card')
             getCardList();            
+            toast.success('Successfully deleted card')
+        } catch (error) {
+            if (error.response.data.message.includes('Token')) {
+                navigate('/login');
+                toast.error(error.response.data.message)
+                localStorage.clear();
+            }
+        }
+    }
+
+    let deleteTodo = async (id) => { 
+        try {
+            const cardTodo = await axios.delete(`${url}/todo/${id}`, {
+                headers: { Authorization: `Bearer ${auth.jwt}` }
+            })
+            getCardList();            
+            toast.success('Successfully deleted todo')
         } catch (error) {
             if (error.response.data.message.includes('Token')) {
                 navigate('/login');
@@ -132,7 +148,6 @@ const Home = () => {
             setOpen(!open);
             toast.success('Todo created!')
         } catch (error) {
-        console.log(error);
             toast.error(JSON.stringify(error?.response?.data?.error), {
                 toastId: "errorLogin",
                 theme: "dark",
@@ -158,8 +173,12 @@ const Home = () => {
                 <Box
                     sx={{
                         display: 'flex',
-                        justifyContent: 'center',
+                        justifyContent: 'start',
                         alignItems: 'center',
+                        flexWrap: 'wrap',
+                        ml: 4,
+                        mt: 3,
+                        pb: 5
                     }}
                 >
                     {Array.isArray(cardTodo) && cardTodo.map((card) => (
@@ -190,14 +209,17 @@ const Home = () => {
                                     <Add fontSize='20px' style={{color: 'white', paddingLeft: '20px', marginTop: '2px'}}/>
                                 </Tooltip>
                                 <Tooltip onClick={() => DeleteCard(card.card_todo_id) } title="Delete card">
-                                    <Delete fontSize='20px' style={{color: 'white', paddingLeft: '5px', marginTop: '2px'}}/>
+                                    <Delete fontSize='20px' style={{color: 'maroon', paddingLeft: '5px', marginTop: '2px'}}/>
                                 </Tooltip>
                             </Box>
                                 <FormGroup style={{marginTop: '10px'}}>
-                                    {card.todos.map((todo) => (
-                                        <Tooltip onClick={() => DeleteCard(card.card_todo_id) } title={todo.description}>
-                                            <FormControlLabel control={<Checkbox />} label={todo.title} />
-                                        </Tooltip>
+                                {card.todos.map((todo) => (
+                                        <Box sx={{display: 'flex', justifyContent: 'space-between'}}>
+                                            <Tooltip title={todo.description}>
+                                                <FormControlLabel control={<Checkbox />} label={todo.title} />
+                                            </Tooltip>
+                                            <Delete onClick={() => deleteTodo(todo.id)} style={{marginTop: '13px', cursor: 'pointer'}} fontSize='20px' htmlColor='maroon' />                                      
+                                        </Box>
                                     ))}
                                 </FormGroup>
                         </CardContent>
