@@ -1,4 +1,4 @@
-import { Box, Button, FormControl, FormHelperText, IconButton, Input, InputAdornment, InputLabel, inputLabelClasses, TextField, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, FormControl, FormHelperText, IconButton, Input, InputAdornment, InputLabel, inputLabelClasses, TextField, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
 import { Link, useNavigate } from "react-router-dom";
@@ -17,6 +17,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginPage, setLoginPage] = useState(true);
+  const [loading, setLoading] = useState(false);
 
 
   const CreateButton = styled(Button)(({ theme }) => ({
@@ -43,6 +44,7 @@ const Login = () => {
   }
   
   function submitLogin() {
+    setLoading(true)
     let errors = {};
     if (formData?.email?.length < 3 || formData.email === undefined) {
         errors['email'] = 'email is required at least 2 characters';
@@ -57,6 +59,7 @@ const Login = () => {
   }
 
   function submitRegister() {
+    setLoading(true)
     let errors = [];
     if (formData?.email?.length < 8 || formData?.email === undefined) {
         errors['email'] = 'email is required';
@@ -88,6 +91,7 @@ const Login = () => {
       try {
         const response = await axios.post(`${url}/register`, data)
         setLoginPage(!loginPage)
+        setLoading(false)
         toast.success('User created succesfully!')
       } catch (error) {
         toast.error(JSON.stringify(error?.response?.data?.error), {
@@ -109,6 +113,7 @@ const Login = () => {
       window.localStorage.setItem('session', JSON.stringify({
         user: response.data.data.user_id, jwt: response.data.data.token, path: "/login", expires: date
       }));
+      setLoading(false);
       toast.success("Wellcome Home", {
           toastId: "loginSuccess",
           theme: "dark",
@@ -226,15 +231,15 @@ const Login = () => {
               <Typography color='red' fontSize={12}>{error}</Typography>
               
               <FormControl sx={{mt: '20px',  width: '100%'}}>
-                <CreateButton
-                  sx={{
-                  }}
-                  variant="contained"
-                  onClick={() => submitLogin()}
-                  type="submit"
-                >
-                  Login
-                </CreateButton>            
+                {loading === false  ? (
+                  <CreateButton
+                    variant="contained"
+                    onClick={() => submitLogin()}
+                    type="submit"
+                  >
+                    Login
+                  </CreateButton>  
+                ) : (<CircularProgress style={{margin: '0 auto'}} color="secondary" />)}
               </FormControl>
             </form>
             <Box>
@@ -366,13 +371,16 @@ const Login = () => {
                 
                   <Typography color='red' fontSize={12}>{error}</Typography>
                   <FormControl sx={{ mt: '20px', width: '100%' }}>
-                  <CreateButton
-                    variant="contained"
-                    onClick={() => submitRegister()}
-                    type="submit"
-                  >
-                    Register
-                  </CreateButton>            
+                  
+                    {loading === false ? (
+                      <CreateButton
+                        variant="contained"
+                        onClick={() => submitRegister()}
+                        type="submit"
+                      >
+                      Register
+                      </CreateButton>
+                    ) : (<CircularProgress style={{margin: '0 auto'}} color="secondary" />)}
                   </FormControl>
                   <Box>
                     <Typography>Already have account? <Link to="" onClick={() => setLoginPage(!loginPage)} style={{textDecoration: 'none'}}>Login</Link></Typography>

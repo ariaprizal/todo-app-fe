@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { checkLogin } from '../helper/helper';
-import { Box, Button, CardContent, Checkbox, FormControl, FormControlLabel, FormGroup, FormHelperText, InputAdornment, Modal, TextField, Tooltip, Typography, styled } from '@mui/material';
+import { Backdrop, Box, Button, CardContent, Checkbox, CircularProgress, FormControl, FormControlLabel, FormGroup, FormHelperText, InputAdornment, LinearProgress, Modal, TextField, Tooltip, Typography, styled } from '@mui/material';
 import axios from 'axios';
 import { Add, Delete, Description, Settings, Title } from '@mui/icons-material';
 import { toast } from 'react-toastify';
@@ -14,6 +14,7 @@ const Home = () => {
     const [open, setOpen] = useState(false);
     const [formData, setFormData] = useState({});
     const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(true);
 
     const style = {
         position: 'absolute',
@@ -49,8 +50,11 @@ const Home = () => {
             const cardTodo = await axios.get(`${url}/card-todo`,{
                 headers: { Authorization: `Bearer ${auth.jwt}` }
             })
+            
+            cardTodo?.status === 200 && setLoading(false);
             setCardTodo(cardTodo.data.data);
         } catch (error) {
+            setLoading(!loading)
             if (error.response.data.message.includes('Token')) {
                 navigate('/login');
                 toast.error(error.response.data.message)
@@ -60,6 +64,7 @@ const Home = () => {
     }
     
     let createCard = async () => { 
+        setLoading(!loading)
         try {
             const cardTodo = await axios.post(`${url}/card-todo`, {user_id: auth.user}, {
                 headers: { Authorization: `Bearer ${auth.jwt}` }
@@ -67,6 +72,7 @@ const Home = () => {
             getCardList();
             toast.success('Successfully added card')
         } catch (error) {
+            setLoading(!loading)
             if (error.response.data.message.includes('Token')) {
                 navigate('/login');
                 toast.error(error.response.data.message)
@@ -76,13 +82,15 @@ const Home = () => {
     }
 
     let DeleteCard = async (id) => { 
+        setLoading(!loading)
         try {
             const cardTodo = await axios.delete(`${url}/card-todo/${id}`, {
                 headers: { Authorization: `Bearer ${auth.jwt}` }
             })
-            getCardList();            
+            getCardList();  
             toast.success('Successfully deleted card')
         } catch (error) {
+            setLoading(!loading)
             if (error.response.data.message.includes('Token')) {
                 navigate('/login');
                 toast.error(error.response.data.message)
@@ -92,6 +100,7 @@ const Home = () => {
     }
 
     let deleteTodo = async (id) => { 
+        setLoading(!loading)
         try {
             const cardTodo = await axios.delete(`${url}/todo/${id}`, {
                 headers: { Authorization: `Bearer ${auth.jwt}` }
@@ -99,6 +108,7 @@ const Home = () => {
             getCardList();            
             toast.success('Successfully deleted todo')
         } catch (error) {
+            setLoading(!loading)
             if (error.response.data.message.includes('Token')) {
                 navigate('/login');
                 toast.error(error.response.data.message)
@@ -134,6 +144,7 @@ const Home = () => {
     }
 
     const onSubmitTodo = async () => {
+        setLoading(!loading)
         let data = {
             title: formData.title,
             description: formData.description,
@@ -148,16 +159,27 @@ const Home = () => {
             setOpen(!open);
             toast.success('Todo created!')
         } catch (error) {
+            setLoading(!loading)
             toast.error(JSON.stringify(error?.response?.data?.error), {
                 toastId: "errorLogin",
                 theme: "dark",
             });
         }
-    }   
+    }  
     
+    const logout = async () => {
+        localStorage.clear()
+        navigate('/login')
+    }   
 
     return (
         <>
+            <Backdrop
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={loading}
+            >
+                <CircularProgress color="inherit" />
+            </Backdrop>
             <Box
                 sx={{
                     height: "100vh", 
@@ -168,8 +190,11 @@ const Home = () => {
                     alignItems: 'center',
                 }}
             >
-                <Typography mt={5} fontSize={28}> Your todo List </Typography>
-                <Button onClick={() => createCard()} variant="contained">Add Card Todo</Button>
+                <Typography mt={5} mb={1} fontSize={28}> Your todo List </Typography>
+                <Box sx={{display: 'flex', marginX: '10px'}}>
+                    <Button onClick={() => createCard()} variant="contained">Add Card Todo</Button>
+                    <Button sx={{ml: 5}} onClick={() => logout()} variant="contained">Logout</Button>
+                </Box>
                 <Box
                     sx={{
                         display: 'flex',
